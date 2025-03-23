@@ -78,7 +78,7 @@ class StreamDeck(ABC):
     DECK_VISUAL = False
     DECK_TOUCH = False
 
-    def __init__(self, device, resume_from_suspend: bool = True):
+    def __init__(self, device):
         self.device = device
         self.last_key_states = [False] * (self.KEY_COUNT + self.TOUCH_KEY_COUNT)
         self.last_dial_states = [False] * self.DIAL_COUNT
@@ -280,7 +280,7 @@ class StreamDeck(ABC):
             self.read_thread.daemon = True
             self.read_thread.start()
 
-    def open(self):
+    def open(self, resume_from_suspend: bool = True):
         """
         Opens the device for input/output. This must be called prior to setting
         or retrieving any device state.
@@ -290,7 +290,7 @@ class StreamDeck(ABC):
         self.device.open()
 
         self._reset_key_stream()
-        if self.resume_from_suspend:
+        if resume_from_suspend:
             self._setup_reader(self._read_with_resume_from_suspend)
         else:
             self._setup_reader(self._read)
