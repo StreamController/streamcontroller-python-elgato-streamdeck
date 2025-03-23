@@ -7,6 +7,9 @@ This is an open source Python 3 library to control an
 without the official software. This can allow you to create your own custom
 front-ends, such as a custom control front-end for home automation software.
 
+> [!NOTE]  
+> This is a fork of [abcminiuser/python-elgato-streamdeck](https://github.com/abcminiuser/python-elgato-streamdeck) targeted at [StreamController](https://github.com/StreamController/StreamController).
+
 _________________
 
 [PyPi Project Entry](https://pypi.org/project/streamdeck/) - [Online Documentation](https://python-elgato-streamdeck.readthedocs.io) - [Source Code](https://github.com/abcminiuser/python-elgato-streamdeck)
