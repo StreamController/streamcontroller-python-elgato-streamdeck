@@ -7,7 +7,7 @@ with open("README.md", 'r') as f:
     long_description = f.read()
 
 setuptools.setup(
-   name='streamdeck',
+   name='streamcontroller-streamdeck',
    version=version,
    description='Library to control Elgato StreamDeck devices.',
    author='Core447',
