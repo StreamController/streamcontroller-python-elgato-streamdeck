@@ -5,6 +5,7 @@
 #         www.fourwalledcubicle.com
 #
 
+from StreamDeck.Devices.StreamDeck import StreamDeck
 from .Devices.StreamDeckMini import StreamDeckMini
 from .Devices.StreamDeckNeo import StreamDeckNeo
 from .Devices.StreamDeckOriginal import StreamDeckOriginal
@@ -95,7 +96,7 @@ class DeviceManager:
         """
         self.transport = self._get_transport(transport)
 
-    def enumerate(self):
+    def enumerate(self) -> list[StreamDeck]:
         """
         Detect attached StreamDeck devices.
 
