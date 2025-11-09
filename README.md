@@ -10,6 +10,9 @@ front-ends, such as a custom control front-end for home automation software.
 Protocol documentation for various StreamDeck products are
 [published the Elgato website](https://docs.elgato.com/streamdeck).
 
+> [!NOTE]  
+> This is a fork of [abcminiuser/python-elgato-streamdeck](https://github.com/abcminiuser/python-elgato-streamdeck) targeted at [StreamController](https://github.com/StreamController/StreamController).
+
 _________________
 
 [PyPi Project Entry](https://pypi.org/project/streamdeck/) - [Online Documentation](https://python-elgato-streamdeck.readthedocs.io) - [Source Code](https://github.com/abcminiuser/python-elgato-streamdeck)

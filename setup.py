@@ -7,12 +7,12 @@ with open("README.md", 'r') as f:
     long_description = f.read()
 
 setuptools.setup(
-   name='streamdeck',
+   name='streamcontroller-streamdeck',
    version=version,
    description='Library to control Elgato StreamDeck devices.',
-   author='Dean Camera',
-   author_email='dean@fourwalledcubicle.com',
-   url='https://github.com/abcminiuser/python-elgato-streamdeck',
+   author='Core447',
+   author_email='core447@proton.me',
+   url='https://github.com/StreamController/sc-python-elgato-streamdeck',
    package_dir={'': 'src'},
    packages=setuptools.find_packages(where='src'),
    install_requires=[],
