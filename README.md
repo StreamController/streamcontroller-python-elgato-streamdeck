@@ -7,6 +7,9 @@ This is an open source Python 3 library to control an
 without the official software. This can allow you to create your own custom
 front-ends, such as a custom control front-end for home automation software.
 
+Protocol documentation for various StreamDeck products are
+[published the Elgato website](https://docs.elgato.com/streamdeck).
+
 > [!NOTE]  
 > This is a fork of [abcminiuser/python-elgato-streamdeck](https://github.com/abcminiuser/python-elgato-streamdeck) targeted at [StreamController](https://github.com/StreamController/StreamController).
 
@@ -23,6 +26,7 @@ the images shown on each button, and read the current button states.
 Currently the following StreamDeck products are supported in multiple hardware
 variants:
 
+* StreamDeck 6 Key, 15 Key and 32 Key Modules
 * StreamDeck Mini
 * StreamDeck Neo
 * StreamDeck Original
@@ -52,15 +56,12 @@ directory.
 
 ## Credits:
 
-I've used the reverse engineering notes from
-[this GitHub](https://github.com/alvancamp/node-elgato-stream-deck/blob/master/NOTES.md)
-repository to implement this library. Thanks Alex Van Camp!
-
 Thank you to the following contributors, large and small, for helping with the
 development and maintenance of this library:
 
 - [admiral0](https://github.com/admiral0)
 - [Aetherdyne](https://github.com/Aetherdyne)
+- [Benargee](https://github.com/Benargee)
 - [benedikt-bartscher](https://github.com/benedikt-bartscher)
 - [brimston3](https://github.com/brimston3)
 - [BS-Tek](https://github.com/BS-Tek)
@@ -74,13 +75,16 @@ development and maintenance of this library:
 - [itsusony](https://github.com/itsusony)
 - [jakobbuis](https://github.com/jakobbuis)
 - [jmudge14](https://github.com/jmudge14)
+- [jonbloom](https://github.com/jonbloom)
 - [Kalle-Wirsch](https://github.com/Kalle-Wirsch)
 - [karstlok](https://github.com/karstlok)
 - [Lewiscowles1986](https://github.com/Lewiscowles1986)
 - [m-weigand](https://github.com/m-weigand)
+- [mathben](https://github.com/mathben)
 - [matrixinius](https://github.com/matrixinius)
 - [phillco](https://github.com/phillco)
 - [pointshader](https://github.com/pointshader)
+- [pylogger-html](https://github.com/pylogger-html)
 - [shanna](https://github.com/shanna)
 - [spidererrol](https://github.com/Spidererrol)
 - [spyoungtech](https://github.com/spyoungtech)
