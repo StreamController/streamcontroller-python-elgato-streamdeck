@@ -311,6 +311,7 @@ class StreamDeck(ABC):
 
         .. seealso:: See :func:`~StreamDeck.open` for the corresponding open method.
         """
+        self.run_read_thread = False
         self.device.close()
 
     def is_open(self) -> bool:
