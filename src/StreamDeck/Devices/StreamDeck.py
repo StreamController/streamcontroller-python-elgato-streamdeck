@@ -266,7 +266,7 @@ class StreamDeck(ABC):
                             if time.time() - start_time > TIMEOUT:
                                 break
 
-    def _setup_reader(self, callback):
+    def _setup_reader(self, callback: Callable) -> None:
         """
         Sets up the internal transport reader thread with the given callback,
         for asynchronous processing of HID events from the device. If the thread
