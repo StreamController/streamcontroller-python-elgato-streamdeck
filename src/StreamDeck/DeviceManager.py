@@ -15,6 +15,7 @@ from .Devices.StreamDeckPedal import StreamDeckPedal
 from .Devices.StreamDeckPlus import StreamDeckPlus
 from .Transport import Transport
 from .Devices.Mirabox293S import Mirabox293S
+from .Devices.AjazzAKP03E import AjazzAKP03E, SoomfonCN002
 from .Transport.Dummy import Dummy
 from .Transport.LibUSBHIDAPI import LibUSBHIDAPI
 from .ProductIDs import USBVendorIDs, USBProductIDs
@@ -112,13 +113,19 @@ class DeviceManager:
             (USBVendorIDs.USB_VID_ELGATO, USBProductIDs.USB_PID_STREAMDECK_XL_V2, StreamDeckXL),
             (USBVendorIDs.USB_VID_ELGATO, USBProductIDs.USB_PID_STREAMDECK_XL_V2_MODULE, StreamDeckXL),
             (USBVendorIDs.USB_VID_ELGATO, USBProductIDs.USB_PID_STREAMDECK_PLUS, StreamDeckPlus),
-            (USBVendorIDs.USB_VID_MIRABOX, USBProductIDs.USB_PID_MIRABOX_STREAMDOCK_293S, Mirabox293S)
+            (USBVendorIDs.USB_VID_MIRABOX, USBProductIDs.USB_PID_MIRABOX_STREAMDOCK_293S, Mirabox293S),
+            (USBVendorIDs.USB_VID_AJAZZ, USBProductIDs.USB_PID_AJAZZ_AKP03E, AjazzAKP03E),
+            (USBVendorIDs.USB_VID_SOOMFON, USBProductIDs.USB_PID_SOOMFON_CN002, SoomfonCN002)
         ]
 
         streamdecks = list()
 
         for vid, pid, class_type in products:
             found_devices = self.transport.enumerate(vid=vid, pid=pid)
+
+            # This device has a second HID interface as a keyboard
+            if class_type == AjazzAKP03E:
+                found_devices = found_devices[::2]
             streamdecks.extend([class_type(d) for d in found_devices])
 
         return streamdecks
