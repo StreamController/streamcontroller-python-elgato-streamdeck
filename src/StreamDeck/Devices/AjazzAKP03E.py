@@ -23,6 +23,8 @@ class AjazzAKP03E(StreamDeck):
     opendeck plugin: https://github.com/4ndv/opendeck-akp03
     """
 
+    IGNORE_SECOND_HID_DEVICE = True
+
     KEY_COUNT = 9
     KEY_COLS = 3
     KEY_ROWS = 3

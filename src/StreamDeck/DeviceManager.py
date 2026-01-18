@@ -124,7 +124,7 @@ class DeviceManager:
             found_devices = self.transport.enumerate(vid=vid, pid=pid)
 
             # This device has a second HID interface as a keyboard
-            if class_type == AjazzAKP03E:
+            if getattr(class_type, "IGNORE_SECOND_HID_DEVICE", False):
                 found_devices = found_devices[::2]
             streamdecks.extend([class_type(d) for d in found_devices])
 
