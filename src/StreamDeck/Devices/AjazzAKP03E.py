@@ -172,7 +172,7 @@ class AjazzAKP03E(StreamDeck):
         elif read_event in self.DIAL_MAPPING["cw"]: # Dial turn
             # print(f"Handling CW turn")
             states = [0] * self.DIAL_COUNT
-            states[self.DIAL_TURN_CW_LOOKUP[read_event]] = -1
+            states[self.DIAL_TURN_CW_LOOKUP[read_event]] = 1
             return {
                 ControlType.DIAL: {
                     DialEventType.TURN: states,
@@ -181,7 +181,7 @@ class AjazzAKP03E(StreamDeck):
         elif read_event in self.DIAL_MAPPING["ccw"]: # Dial turn
             # print(f"Handling CCW turn")
             states = [0] * self.DIAL_COUNT
-            states[self.DIAL_TURN_CCW_LOOKUP[read_event]] = 1
+            states[self.DIAL_TURN_CCW_LOOKUP[read_event]] = -1
             return {
                 ControlType.DIAL: {
                     DialEventType.TURN: states,

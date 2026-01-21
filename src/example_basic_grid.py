@@ -116,6 +116,11 @@ def key_change_callback(deck, key, state):
                 deck.close()
 
 
+# Prints dial state change information, updates rhe key image and performs any
+# associated actions when a key is pressed.
+def dial_change_callback(deck, dial, event, amount):
+    print("Deck {} Dial {} {} = {}".format(deck.id(), dial, event, amount), flush=True)
+
 if __name__ == "__main__":
     streamdecks = DeviceManager().enumerate()
 
@@ -142,6 +147,7 @@ if __name__ == "__main__":
 
         # Register callback function for when a key state changes.
         deck.set_key_callback(key_change_callback)
+        deck.set_dial_callback(dial_change_callback)
 
         # Wait until all application threads have terminated (for this example,
         # this is when all deck handles are closed).
