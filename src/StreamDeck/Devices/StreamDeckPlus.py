@@ -337,8 +337,10 @@ class StreamDeckPlus(StreamDeck):
         payload[0:2] = [0x03, 0x02]
         self.device.write_feature(payload)
 
+    _INPUT_REPORT_LEN = 512
+
     def _read_control_states(self):
-        states = self.device.read(14)
+        states = self.device.read(self._INPUT_REPORT_LEN)
 
         if states is None:
             return None
