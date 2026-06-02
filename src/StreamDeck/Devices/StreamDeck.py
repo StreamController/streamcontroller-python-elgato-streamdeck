@@ -754,3 +754,11 @@ class StreamDeck(ABC):
                                  If `None`, the screen will be cleared.
         """
         pass
+
+    def has_background_image(self) -> bool:
+        """
+        Returns whether the device supports setting a full physical background image
+        at the hardware level (like Mirabox N4 Pro).
+        """
+        return False
+
