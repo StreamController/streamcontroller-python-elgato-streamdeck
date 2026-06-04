@@ -24,8 +24,8 @@ class MiraboxN4(StreamDeck):
     KEY_FLIP = (False, False)
     KEY_ROTATION = 180
 
-    SECOND_SCREEN_PIXEL_WIDTH = 176
-    SECOND_SCREEN_PIXEL_HEIGHT = 112
+    TOUCHBAR_KEY_PIXEL_WIDTH = 176
+    TOUCHBAR_KEY_PIXEL_HEIGHT = 112
     SECOND_SCREEN_IMAGE_FORMAT = "JPEG"
     SECOND_SCREEN_ROTATION = 180
 
@@ -34,8 +34,8 @@ class MiraboxN4(StreamDeck):
     SCREEN_IMAGE_FORMAT = "JPEG"
     SCREEN_ROTATION = 180
 
-    TOUCHBAR_PIXEL_WIDTH = 800
-    TOUCHBAR_PIXEL_HEIGHT = 112
+    TOUCHBAR_BG_PIXEL_WIDTH = 800
+    TOUCHBAR_BG_PIXEL_HEIGHT = 112
     DIAL_COUNT = 4
     JPEG_QUALITY = 90
     RECOMPRESS_KEY_IMAGES = True
@@ -410,13 +410,13 @@ class MiraboxN4(StreamDeck):
             # The physical button is 176px wide, but the virtual slot is 200px wide.
             # We crop the center 176px of the 200px slot to bypass the physical gaps 
             # and maintain a 1:1 pixel mapping without horizontal squashing.
-            crop_margin_x = (section_width - self.SECOND_SCREEN_PIXEL_WIDTH) // 2
+            crop_margin_x = (section_width - self.TOUCHBAR_KEY_PIXEL_WIDTH) // 2
             section = img.crop((left + crop_margin_x, 0, left + section_width - crop_margin_x, img.height))
             
             # The physical button is 112px high, but the virtual image is 100px high.
             # We paste it centered vertically on a black background to avoid vertical stretching.
-            section_bg = PILImage.new("RGB", (self.SECOND_SCREEN_PIXEL_WIDTH, self.SECOND_SCREEN_PIXEL_HEIGHT), "black")
-            paste_y = (self.SECOND_SCREEN_PIXEL_HEIGHT - section.height) // 2
+            section_bg = PILImage.new("RGB", (self.TOUCHBAR_KEY_PIXEL_WIDTH, self.TOUCHBAR_KEY_PIXEL_HEIGHT), "black")
+            paste_y = (self.TOUCHBAR_KEY_PIXEL_HEIGHT - section.height) // 2
             section_bg.paste(section, (0, paste_y))
             
             section_final = section_bg.rotate(self.SECOND_SCREEN_ROTATION)
@@ -446,7 +446,7 @@ class MiraboxN4(StreamDeck):
 
     def second_screen_image_format(self):
         return {
-            'size': (self.SECOND_SCREEN_PIXEL_WIDTH, self.SECOND_SCREEN_PIXEL_HEIGHT),
+            'size': (self.TOUCHBAR_KEY_PIXEL_WIDTH, self.TOUCHBAR_KEY_PIXEL_HEIGHT),
             'format': self.SECOND_SCREEN_IMAGE_FORMAT,
             'rotation': self.SECOND_SCREEN_ROTATION,
             'flip': (False, False),
@@ -454,7 +454,7 @@ class MiraboxN4(StreamDeck):
 
     def touchscreen_image_format(self):
         return {
-            'size': (self.TOUCHBAR_PIXEL_WIDTH, self.TOUCHBAR_PIXEL_HEIGHT),
+            'size': (self.TOUCHBAR_BG_PIXEL_WIDTH, self.TOUCHBAR_KEY_PIXEL_HEIGHT),
             'format': self.SCREEN_IMAGE_FORMAT,
             'rotation': 0,
             'flip': (False, False),

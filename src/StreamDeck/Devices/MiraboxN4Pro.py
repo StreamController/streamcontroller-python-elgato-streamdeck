@@ -16,8 +16,8 @@ class MiraboxN4Pro(MiraboxN4):
     and custom RGB dial LEDs.
     """
 
-    TOUCHBAR_PIXEL_HEIGHT = 112
-    SECOND_SCREEN_PIXEL_HEIGHT = 112
+    TOUCHBAR_BG_PIXEL_HEIGHT = 160
+    TOUCHBAR_KEY_PIXEL_HEIGHT = 112
     JPEG_QUALITY = 100
     RECOMPRESS_KEY_IMAGES = False
 
@@ -61,18 +61,18 @@ class MiraboxN4Pro(MiraboxN4):
             left = i * section_width
             
             # The physical button is 176px wide, but the virtual slot is 200px wide.
-            crop_margin_x = (section_width - self.SECOND_SCREEN_PIXEL_WIDTH) // 2
+            crop_margin_x = (section_width - self.TOUCHBAR_KEY_PIXEL_WIDTH) // 2
             section = img.crop((left + crop_margin_x, 0, left + section_width - crop_margin_x, img.height))
             
             img_format = self.second_screen_image_format().get('format', 'JPEG')
             
             # Use RGBA background for PNG to preserve transparency
             if img.mode == "RGBA" and img_format == "PNG":
-                section_bg = PILImage.new("RGBA", (self.SECOND_SCREEN_PIXEL_WIDTH, self.SECOND_SCREEN_PIXEL_HEIGHT), (0, 0, 0, 0))
+                section_bg = PILImage.new("RGBA", (self.TOUCHBAR_KEY_PIXEL_WIDTH, self.TOUCHBAR_KEY_PIXEL_HEIGHT), (0, 0, 0, 0))
             else:
-                section_bg = PILImage.new("RGB", (self.SECOND_SCREEN_PIXEL_WIDTH, self.SECOND_SCREEN_PIXEL_HEIGHT), "black")
+                section_bg = PILImage.new("RGB", (self.TOUCHBAR_KEY_PIXEL_WIDTH, self.TOUCHBAR_KEY_PIXEL_HEIGHT), "black")
                 
-            paste_y = (self.SECOND_SCREEN_PIXEL_HEIGHT - section.height) // 2
+            paste_y = (self.TOUCHBAR_KEY_PIXEL_HEIGHT - section.height) // 2
             section_bg.paste(section, (0, paste_y))
             
             section_final = section_bg.rotate(self.SECOND_SCREEN_ROTATION)
