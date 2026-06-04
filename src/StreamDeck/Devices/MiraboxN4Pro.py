@@ -17,6 +17,7 @@ class MiraboxN4Pro(MiraboxN4):
     """
 
     TOUCHBAR_PIXEL_HEIGHT = 112
+    SECOND_SCREEN_PIXEL_HEIGHT = 112
     JPEG_QUALITY = 100
     RECOMPRESS_KEY_IMAGES = False
 
@@ -34,7 +35,59 @@ class MiraboxN4Pro(MiraboxN4):
     def key_image_format(self):
         # Allow base class to handle 180 rotation, as physical screen is inverted
         # but StreamController core expects to handle the rotation natively.
-        return super().key_image_format()
+        fmt = super().key_image_format()
+        fmt['format'] = 'PNG'
+        return fmt
+
+    def second_screen_image_format(self):
+        fmt = super().second_screen_image_format()
+        fmt['format'] = 'PNG'
+        return fmt
+
+    def touchscreen_image_format(self):
+        fmt = super().touchscreen_image_format()
+        fmt['format'] = 'PNG'
+        return fmt
+
+    def set_touchscreen_image(self, image, x_pos=0, y_pos=0, width=0, height=0):
+        if image is None:
+            return
+        from PIL import Image as PILImage
+        from io import BytesIO
+        img = PILImage.open(BytesIO(image))
+        section_width = img.width // 4
+
+        for i in range(4):
+            left = i * section_width
+            
+            # The physical button is 176px wide, but the virtual slot is 200px wide.
+            crop_margin_x = (section_width - self.SECOND_SCREEN_PIXEL_WIDTH) // 2
+            section = img.crop((left + crop_margin_x, 0, left + section_width - crop_margin_x, img.height))
+            
+            img_format = self.second_screen_image_format().get('format', 'JPEG')
+            
+            # Use RGBA background for PNG to preserve transparency
+            if img.mode == "RGBA" and img_format == "PNG":
+                section_bg = PILImage.new("RGBA", (self.SECOND_SCREEN_PIXEL_WIDTH, self.SECOND_SCREEN_PIXEL_HEIGHT), (0, 0, 0, 0))
+            else:
+                section_bg = PILImage.new("RGB", (self.SECOND_SCREEN_PIXEL_WIDTH, self.SECOND_SCREEN_PIXEL_HEIGHT), "black")
+                
+            paste_y = (self.SECOND_SCREEN_PIXEL_HEIGHT - section.height) // 2
+            section_bg.paste(section, (0, paste_y))
+            
+            section_final = section_bg.rotate(self.SECOND_SCREEN_ROTATION)
+            
+            with BytesIO() as buf:
+                if img_format == "PNG":
+                    section_final.save(buf, 'PNG')
+                else:
+                    section_final.save(buf, 'JPEG', quality=self.JPEG_QUALITY)
+                img_data = buf.getvalue()
+
+            key_index = i + self.KEY_COUNT
+            hw_key_id = self._SECOND_SCREEN_TO_HW_ID[key_index]
+            self._send_image_data(hw_key_id, img_data)
+        img.close()
 
     def has_background_image(self) -> bool:
         return True

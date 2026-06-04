@@ -143,8 +143,8 @@ class DeviceManager:
             # Mirabox N4 / AJAZZ AKP05 — usage_page 0xFFA0 selects the vendor command interface
             (USBVendorIDs.USB_VID_MIRABOX_N3_V2, USBProductIDs.USB_PID_MIRABOX_N4, MiraboxN4, 0xFFA0),
             (USBVendorIDs.USB_VID_MIRABOX_N3_V25, USBProductIDs.USB_PID_MIRABOX_N4E, MiraboxN4, 0xFFA0),
-            (USBVendorIDs.USB_VID_AJAZZ, USBProductIDs.USB_PID_AJAZZ_AKP05E, MiraboxN4, 0xFFA0),
-            (USBVendorIDs.USB_VID_AJAZZ, USBProductIDs.USB_PID_AJAZZ_AKP05_PROVISIONAL, MiraboxN4, 0xFFA0),
+            (USBVendorIDs.USB_VID_AJAZZ, USBProductIDs.USB_PID_AJAZZ_AKP05E, MiraboxN4Pro, 0xFFA0),
+            (USBVendorIDs.USB_VID_AJAZZ, USBProductIDs.USB_PID_AJAZZ_AKP05_PRO, MiraboxN4Pro, 0xFFA0),
             # Mirabox N4 Pro — VID 0x5548
             (USBVendorIDs.USB_VID_MIRABOX, USBProductIDs.USB_PID_MIRABOX_N4_PRO, MiraboxN4Pro, 0xFFA0),
             (USBVendorIDs.USB_VID_MIRABOX, USBProductIDs.USB_PID_MIRABOX_N4_PRO_E, MiraboxN4Pro, 0xFFA0),
