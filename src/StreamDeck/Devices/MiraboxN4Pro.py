@@ -223,4 +223,8 @@ class MiraboxN4Pro(MiraboxN4):
     def set_vibration(self, enabled: bool) -> None:
         self.set_haptic_feedback(enabled)
 
+    def has_rgb_leds(self) -> bool:
+        return True
+
+
 

@@ -780,5 +780,18 @@ class StreamDeck(ABC):
         """
         pass
 
+    def has_rgb_leds(self) -> bool:
+        """
+        Returns whether the device supports RGB LEDs.
+        """
+        return False
+
+    def set_led_brightness(self, percent: int | float) -> None:
+        """
+        Sets the brightness of the RGB LEDs (0-100).
+        """
+        pass
+
+
 
 
