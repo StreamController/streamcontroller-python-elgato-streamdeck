@@ -36,6 +36,72 @@ class MiraboxN4Pro(MiraboxN4):
         # but StreamController core expects to handle the rotation natively.
         return super().key_image_format()
 
+    def has_background_image(self) -> bool:
+        return True
+
+    def background_image_format(self):
+        return {
+            'size': (800, 480),
+            'format': 'JPEG',
+            'rotation': 180,
+            'flip': (False, False),
+        }
+
+    def _send_bgpic_data(self, image_data, x=0, y=0, width=800, height=480, layer=0x00):
+        self._initialize_device()
+        image_data = bytes(image_data)
+
+        # BGPIC command structure: 
+        # BGPIC (5 bytes)
+        # length (4 bytes Big-Endian)
+        # x_hi, x_lo
+        # y_hi, y_lo
+        # w_hi, w_lo
+        # h_hi, h_lo
+        # layer
+        bgpic_cmd = bytearray([0x42, 0x47, 0x50, 0x49, 0x43])
+        bgpic_cmd.extend(struct.pack('>I', len(image_data)))
+        bgpic_cmd.extend(struct.pack('>HHHHB', x, y, width, height, layer))
+        
+        with self._write_lock:
+            # Note: the C++ wrapper prepends CRT 0x00 0x00 for the CRT command automatically in its lower level send
+            # wait, in MiraboxN4 _send_command() prepends CRT 0x00 0x00 to whatever is sent.
+            self._send_command(bytes(bgpic_cmd))
+            
+            offset = 0
+            while offset < len(image_data):
+                chunk = image_data[offset:offset + 1024]
+                for _ in range(1000):
+                    try:
+                        self.device.write(self._make_packet(chunk))
+                        break
+                    except Exception:
+                        time.sleep(0.001)
+                else:
+                    self.device.write(self._make_packet(chunk))
+                offset += 1024
+
+    def set_background_image(self, image_data, x=0, y=0, width=800, height=480, layer=0x00):
+        if image_data is None:
+            # Not natively supported to just send None, clear the layer instead
+            self.clear_background_image(layer)
+            return
+
+        # N4 Pro expects JPEG data for background
+        self._send_bgpic_data(image_data, x, y, width, height, layer)
+
+    def clear_background_image(self, layer=0x03):
+        # 0x03 clears all layers according to SDK
+        self._initialize_device()
+        
+        # Command is likely BGCLE followed by the layer byte
+        bgcle_cmd = bytearray([0x42, 0x47, 0x43, 0x4C, 0x45, layer])
+        
+        with self._write_lock:
+            self._send_command(bytes(bgcle_cmd))
+        self._send_stp()
+
+
     def set_led_brightness(self, percent):
         """Sets the brightness of the RGB LEDs (0-100)."""
         self._initialize_device()
