@@ -207,3 +207,20 @@ class MiraboxN4Pro(MiraboxN4):
 
         with self._write_lock:
             self._send_command(cmd)
+
+    def has_haptic_feedback(self) -> bool:
+        return True
+
+    def set_haptic_feedback(self, enabled: bool) -> None:
+        self._initialize_device()
+        state = 0x11 if enabled else 0xFF
+        config = [0x11, 0x11, 0x11, state, 0x11, 0x11]
+        cmd = bytearray(b"QUCMD") + bytearray(config)
+        with self._write_lock:
+            self._send_command(cmd)
+        self._send_stp()
+
+    def set_vibration(self, enabled: bool) -> None:
+        self.set_haptic_feedback(enabled)
+
+

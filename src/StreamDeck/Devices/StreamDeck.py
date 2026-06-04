@@ -762,3 +762,23 @@ class StreamDeck(ABC):
         """
         return False
 
+    def has_haptic_feedback(self) -> bool:
+        """
+        Returns whether the device supports haptic feedback (vibration).
+        """
+        return False
+
+    def set_haptic_feedback(self, enabled: bool) -> None:
+        """
+        Enables or disables touch/press haptic feedback (vibration) on the device.
+        """
+        pass
+
+    def set_vibration(self, enabled: bool) -> None:
+        """
+        Enables or disables vibration on the device.
+        """
+        pass
+
+
+
