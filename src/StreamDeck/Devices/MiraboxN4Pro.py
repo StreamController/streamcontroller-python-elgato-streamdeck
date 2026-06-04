@@ -145,6 +145,8 @@ class MiraboxN4Pro(MiraboxN4):
 
     def clear_background_image(self, layer=0x03):
         # 0x03 clears all layers according to SDK
+        if layer == 0x00:
+            layer = 0x01
         self._initialize_device()
         
         # Command is likely BGCLE followed by the layer byte
