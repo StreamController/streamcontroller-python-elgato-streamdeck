@@ -165,7 +165,7 @@ class MiraboxN4Pro(MiraboxN4):
         percent = min(max(percent, 0), 100)
         self._global_led_brightness = percent
 
-        hw_percent = max(1, percent)
+        hw_percent = percent
         self._send_command(bytes([0x4C, 0x42, 0x4C, 0x49, 0x47, hw_percent]))
         self._update_hw_led_colors()
 
@@ -201,9 +201,6 @@ class MiraboxN4Pro(MiraboxN4):
             else:
                 scale = self._led_brightness[i] / 100.0
             cmd.extend([int(r * scale), int(g * scale), int(b * scale)])
-
-        if all(x == 0 for x in cmd[5:]):
-            cmd[-1] = 1
 
         with self._write_lock:
             self._send_command(cmd)
