@@ -29,7 +29,7 @@ class Mirabox293S(StreamDeck):
     DECK_VISUAL = True
     DECK_TOUCH = False # kind of... it could be used for the side display.
 
-    PACKET_LENGHT = 512
+    PACKET_LENGTH = 512
 
     # the side display uses key ids 0x10, 0x11, 0x12 with 80x80 images.
     KEY_NUM_TO_DEVICE_KEY_ID = [0x0d, 0x0a, 0x07, 0x04, 0x01, 0x10, 0xe, 0xb, 0x08, 0x05, 0x02, 0x11, 0x0f, 0x0c, 0x09, 0x06, 0x03, 0x12]
@@ -89,7 +89,7 @@ class Mirabox293S(StreamDeck):
     
     
     def _make_payload_for_report_id(self, report_id, payload_data):
-        payload = bytearray(self.PACKET_LENGHT + 1)
+        payload = bytearray(self.PACKET_LENGTH + 1)
         payload[0] = report_id
         payload[1:len(payload_data)] = payload_data
         return payload
@@ -102,7 +102,7 @@ class Mirabox293S(StreamDeck):
         # if a firmware upgrade that supports key down/up events is released, this variable can be removed from the code.
 
         if not self._key_triggered_last_read:
-            device_input_data = self.device.read(self.PACKET_LENGHT)
+            device_input_data = self.device.read(self.PACKET_LENGTH)
             if device_input_data is None:
                 return None
             
@@ -152,7 +152,7 @@ class Mirabox293S(StreamDeck):
         return self.device.serial_number()
 
     def get_firmware_version(self):
-        version = self.device.read_input(0x00, self.PACKET_LENGHT + 1)
+        version = self.device.read_input(0x00, self.PACKET_LENGTH + 1)
         return self._extract_string(version[1:])
 
     def set_key_image(self, key, image):
@@ -160,7 +160,7 @@ class Mirabox293S(StreamDeck):
             raise IndexError("Invalid key index {}.".format(key))
 
         image = bytes(image or self.BLANK_KEY_IMAGE)
-        image_payload_page_length = self.PACKET_LENGHT
+        image_payload_page_length = self.PACKET_LENGTH
 
         key = self._convert_key_num_to_device_key_id(key)
 
