@@ -13,9 +13,9 @@ class StreamDeckNeo(StreamDeck):
     Represents a physically attached StreamDeck Neo device.
     """
 
-    KEY_COUNT = 8
+    KEY_COUNT = 10
     KEY_COLS = 4
-    KEY_ROWS = 2
+    KEY_ROWS = 3
 
     TOUCH_KEY_COUNT = 2
 
