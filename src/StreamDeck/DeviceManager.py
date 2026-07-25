@@ -15,6 +15,7 @@ from .Devices.StreamDeckOriginalV2 import StreamDeckOriginalV2
 from .Devices.StreamDeckXL import StreamDeckXL
 from .Devices.StreamDeckPedal import StreamDeckPedal
 from .Devices.StreamDeckPlus import StreamDeckPlus
+from .Devices.StreamDeckPlusXL import StreamDeckPlusXL
 from .Transport import Transport
 from .Devices.Mirabox293S import Mirabox293S
 from .Transport.Dummy import Dummy
@@ -143,6 +144,7 @@ class DeviceManager:
             (USBVendorIDs.USB_VID_ELGATO, USBProductIDs.USB_PID_STREAMDECK_XL_V2, StreamDeckXL),
             (USBVendorIDs.USB_VID_ELGATO, USBProductIDs.USB_PID_STREAMDECK_XL_V2_MODULE, StreamDeckXL),
             (USBVendorIDs.USB_VID_ELGATO, USBProductIDs.USB_PID_STREAMDECK_PLUS, StreamDeckPlus),
+            (USBVendorIDs.USB_VID_ELGATO, USBProductIDs.USB_PID_STREAMDECK_PLUS_XL, StreamDeckPlusXL),
             (USBVendorIDs.USB_VID_MIRABOX, USBProductIDs.USB_PID_MIRABOX_STREAMDOCK_293S, Mirabox293S)
         ]
 
