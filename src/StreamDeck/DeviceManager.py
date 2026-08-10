@@ -7,19 +7,21 @@
 
 from collections.abc import Callable
 
+from .Devices.Mirabox293S import Mirabox293S
 from .Devices.StreamDeck import StreamDeck
 from .Devices.StreamDeckMini import StreamDeckMini
 from .Devices.StreamDeckNeo import StreamDeckNeo
 from .Devices.StreamDeckOriginal import StreamDeckOriginal
 from .Devices.StreamDeckOriginalV2 import StreamDeckOriginalV2
-from .Devices.StreamDeckXL import StreamDeckXL
 from .Devices.StreamDeckPedal import StreamDeckPedal
 from .Devices.StreamDeckPlus import StreamDeckPlus
+from .Devices.StreamDeckPlusXL import StreamDeckPlusXL
+from .Devices.StreamDeckStudio import StreamDeckStudio
+from .Devices.StreamDeckXL import StreamDeckXL
+from .ProductIDs import USBProductIDs, USBVendorIDs
 from .Transport import Transport
-from .Devices.Mirabox293S import Mirabox293S
 from .Transport.Dummy import Dummy
 from .Transport.LibUSBHIDAPI import LibUSBHIDAPI
-from .ProductIDs import USBVendorIDs, USBProductIDs
 
 
 # Module-level registry of additional controller factories. These are intended
@@ -86,13 +88,13 @@ class DeviceManager:
             transport_class = transports.get(transport)
 
             if transport_class is None:
-                raise ProbeError("Unknown HID transport backend \"{}\".".format(transport))
+                raise ProbeError(f"Unknown HID transport backend \"{transport}\".")
 
             try:
                 transport_class.probe()
                 return transport_class()
             except Exception as transport_error:
-                raise ProbeError("Probe failed on HID backend \"{}\".".format(transport), transport_error)
+                raise ProbeError(f"Probe failed on HID backend \"{transport}\".", transport_error)
         else:
             probe_errors = {}
 
@@ -133,6 +135,7 @@ class DeviceManager:
             (USBVendorIDs.USB_VID_ELGATO, USBProductIDs.USB_PID_STREAMDECK_MK2_SCISSOR, StreamDeckOriginalV2),
             (USBVendorIDs.USB_VID_ELGATO, USBProductIDs.USB_PID_STREAMDECK_MK2_MODULE, StreamDeckOriginalV2),
             (USBVendorIDs.USB_VID_ELGATO, USBProductIDs.USB_PID_STREAMDECK_MINI, StreamDeckMini),
+            (USBVendorIDs.USB_VID_ELGATO, USBProductIDs.USB_PID_STREAMDECK_MINI_DISCORD, StreamDeckMini),
             (USBVendorIDs.USB_VID_ELGATO, USBProductIDs.USB_PID_STREAMDECK_NEO, StreamDeckNeo),
             (USBVendorIDs.USB_VID_ELGATO, USBProductIDs.USB_PID_STREAMDECK_XL, StreamDeckXL),
             (USBVendorIDs.USB_VID_ELGATO, USBProductIDs.USB_PID_STREAMDECK_MK2, StreamDeckOriginalV2),
@@ -142,8 +145,10 @@ class DeviceManager:
             (USBVendorIDs.USB_VID_ELGATO, USBProductIDs.USB_PID_STREAMDECK_MINI_MK2_MODULE, StreamDeckMini),
             (USBVendorIDs.USB_VID_ELGATO, USBProductIDs.USB_PID_STREAMDECK_XL_V2, StreamDeckXL),
             (USBVendorIDs.USB_VID_ELGATO, USBProductIDs.USB_PID_STREAMDECK_XL_V2_MODULE, StreamDeckXL),
+            (USBVendorIDs.USB_VID_ELGATO, USBProductIDs.USB_PID_STREAMDECK_STUDIO, StreamDeckStudio),
             (USBVendorIDs.USB_VID_ELGATO, USBProductIDs.USB_PID_STREAMDECK_PLUS, StreamDeckPlus),
-            (USBVendorIDs.USB_VID_MIRABOX, USBProductIDs.USB_PID_MIRABOX_STREAMDOCK_293S, Mirabox293S)
+            (USBVendorIDs.USB_VID_ELGATO, USBProductIDs.USB_PID_STREAMDECK_PLUS_XL, StreamDeckPlusXL),
+            (USBVendorIDs.USB_VID_MIRABOX, USBProductIDs.USB_PID_MIRABOX_STREAMDOCK_293S, Mirabox293S),
         ]
 
         streamdecks = list()

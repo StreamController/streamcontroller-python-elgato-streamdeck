@@ -168,7 +168,7 @@ class LibUSBHIDAPI(Transport):
 
             self.hidapi = self._load_hidapi_library(platform_search_library_names)
             if not self.hidapi:
-                raise TransportError("No suitable LibUSB HIDAPI library found on this system. Is the '{}' library installed?".format(platform_search_library_names[0]))
+                raise TransportError(f"No suitable LibUSB HIDAPI library found on this system. Is the '{platform_search_library_names[0]}' library installed?")
 
             self.mutex = threading.Lock()
 
@@ -260,7 +260,7 @@ class LibUSBHIDAPI(Transport):
                 result = self.hidapi.hid_send_feature_report(handle, bytes(data), len(data))
 
             if result < 0:
-                raise TransportError("Failed to write feature report (%d)" % result)
+                raise TransportError(f"Failed to write feature report ({result}")
 
             return result
 
@@ -292,7 +292,7 @@ class LibUSBHIDAPI(Transport):
                 result = self.hidapi.hid_get_feature_report(handle, data, len(data))
 
             if result < 0:
-                raise TransportError("Failed to read feature report (%d)" % result)
+                raise TransportError(f"Failed to read feature report ({result}")
 
             if length < read_length and result == read_length:
                 # Mac HIDAPI 0.9.0 bug, we read one less than we expected (not including report ID).
@@ -361,7 +361,7 @@ class LibUSBHIDAPI(Transport):
                 result = self.hidapi.hid_write(handle, bytes(data), len(data))
 
             if result < 0:
-                raise TransportError("Failed to write out report (%d)" % result)
+                raise TransportError(f"Failed to write out report ({result})")
 
             return result
 
@@ -386,7 +386,7 @@ class LibUSBHIDAPI(Transport):
                 result = self.hidapi.hid_read(handle, data, len(data))
 
             if result < 0:
-                raise TransportError("Failed to read in report (%d)" % result)
+                raise TransportError(f"Failed to read in report ({result})")
             elif result == 0:
                 return None
 
@@ -402,7 +402,7 @@ class LibUSBHIDAPI(Transport):
         def __del__(self):
             self.close()
 
-        def __exit__(self):
+        def __exit__(self, type, value, traceback):
             self.close()
 
         def open(self):
@@ -424,7 +424,7 @@ class LibUSBHIDAPI(Transport):
 
         def connected(self):
             with self.mutex:
-                return any([d['path'] == self.device_info['path'] for d in self.hidapi.enumerate()])
+                return any(d['path'] == self.device_info['path'] for d in self.hidapi.enumerate())
 
         def vendor_id(self):
             return self.device_info['vendor_id']

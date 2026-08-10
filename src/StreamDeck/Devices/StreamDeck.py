@@ -8,9 +8,9 @@
 import threading
 import time
 from abc import ABC, abstractmethod
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable, Iterable
 from enum import Enum
-from typing import Any, Iterable, TypeVar
+from typing import Any, TypeVar
 
 from ..Transport.Transport import Transport, TransportError
 
@@ -82,8 +82,11 @@ class StreamDeck(ABC):
 
     _Self = TypeVar('_Self', bound='StreamDeck')
     KeyCallback = Callable[[_Self, int, bool], None] | None
+    AsyncKeyCallback = Callable[[_Self, int, bool], Awaitable[None]] | None
     DialCallback = Callable[[_Self, int, DialEventType, bool], None] | None
+    AsyncDialCallback = Callable[[_Self, int, DialEventType, bool], Awaitable[None]] | None
     TouchScreenCallback = Callable[[_Self, TouchscreenEventType, Any], None] | None
+    AsyncTouchScreenCallback = Callable[[_Self, TouchscreenEventType, Any], Awaitable[None]] | None
 
     def __init__(self, device: Transport.Device):
         self.device: Transport.Device = device
@@ -98,7 +101,7 @@ class StreamDeck(ABC):
         self.touchscreen_callback: StreamDeck.TouchScreenCallback = None
 
         self.update_lock: threading.RLock = threading.RLock()
-        self.reconnect_after_suspend = True
+        self.reconnect_after_suspend: bool = True
 
     def __del__(self):
         """
@@ -209,7 +212,7 @@ class StreamDeck(ABC):
                 self.run_read_thread = False
                 self.close()
 
-    def _read_with_resume_from_suspend(self):
+    def _read_with_resume_from_suspend(self) -> None:
         """
         Read handler for the underlying transport, listening for button state
         changes on the underlying device, caching the new states and firing off
@@ -266,7 +269,7 @@ class StreamDeck(ABC):
                             if time.time() - start_time > TIMEOUT:
                                 break
 
-    def _setup_reader(self, callback):
+    def _setup_reader(self, callback: Callable) -> None:
         """
         Sets up the internal transport reader thread with the given callback,
         for asynchronous processing of HID events from the device. If the thread
@@ -516,7 +519,7 @@ class StreamDeck(ABC):
         """
         self.key_callback = callback
 
-    def set_key_callback_async(self, async_callback: KeyCallback, loop=None):
+    def set_key_callback_async(self, async_callback: AsyncKeyCallback, loop=None):
         """
         Sets the asynchronous callback function called each time a button on the
         StreamDeck changes state (either pressed, or released). The given
@@ -537,7 +540,12 @@ class StreamDeck(ABC):
         loop = loop or asyncio.get_event_loop()
 
         def callback(*args):
-            asyncio.run_coroutine_threadsafe(async_callback(*args), loop)
+            def done(fut):
+                # Get the async result, this will re-raise any exceptions.
+                fut.result()
+
+            result = asyncio.run_coroutine_threadsafe(async_callback(*args), loop)
+            result.add_done_callback(done)
 
         self.set_key_callback(callback)
 
@@ -560,7 +568,7 @@ class StreamDeck(ABC):
         """
         self.dial_callback = callback
 
-    def set_dial_callback_async(self, async_callback: DialCallback, loop=None) -> None:
+    def set_dial_callback_async(self, async_callback: AsyncDialCallback, loop=None) -> None:
         """
         Sets the asynchronous callback function called each time there is an
         interaction with a dial on the StreamDeck. The given callback should
@@ -581,7 +589,12 @@ class StreamDeck(ABC):
         loop = loop or asyncio.get_event_loop()
 
         def callback(*args):
-            asyncio.run_coroutine_threadsafe(async_callback(*args), loop)
+            def done(fut):
+                # Get the async result, this will re-raise any exceptions.
+                fut.result()
+
+            result = asyncio.run_coroutine_threadsafe(async_callback(*args), loop)
+            result.add_done_callback(done)
 
         self.set_dial_callback(callback)
 
@@ -604,7 +617,7 @@ class StreamDeck(ABC):
         """
         self.touchscreen_callback = callback
 
-    def set_touchscreen_callback_async(self, async_callback: TouchScreenCallback, loop=None) -> None:
+    def set_touchscreen_callback_async(self, async_callback: AsyncTouchScreenCallback, loop=None) -> None:
         """
         Sets the asynchronous callback function called each time there is an
         interaction with the touchscreen on the StreamDeck. The given callback
@@ -625,7 +638,12 @@ class StreamDeck(ABC):
         loop = loop or asyncio.get_event_loop()
 
         def callback(*args):
-            asyncio.run_coroutine_threadsafe(async_callback(*args), loop)
+            def done(fut):
+                # Get the async result, this will re-raise any exceptions.
+                fut.result()
+
+            result = asyncio.run_coroutine_threadsafe(async_callback(*args), loop)
+            result.add_done_callback(done)
 
         self.set_touchscreen_callback(callback)
 

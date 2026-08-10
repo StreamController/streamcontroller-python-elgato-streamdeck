@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "streamcontroller-streamdeck"
 description = "Library to control Elgato StreamDeck devices."
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = {text = "MIT"}
 authors = [
     {name = "Core447", email = "core447@proton.me"}

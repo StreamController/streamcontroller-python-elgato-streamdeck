@@ -5,8 +5,10 @@
 #         www.fourwalledcubicle.com
 #
 
-from .StreamDeck import StreamDeck, ControlType
+from typing import ClassVar
+
 from ..ProductIDs import USBProductIDs
+from .StreamDeck import ControlType, StreamDeck
 
 
 class StreamDeckMini(StreamDeck):
@@ -32,7 +34,7 @@ class StreamDeckMini(StreamDeck):
     IMAGE_REPORT_PAYLOAD_LENGTH = IMAGE_REPORT_LENGTH - IMAGE_REPORT_HEADER_LENGTH
 
     # 80 x 80 black BMP
-    BLANK_KEY_IMAGE = [
+    BLANK_KEY_IMAGE: ClassVar[list[int]] = [
         0x42, 0x4d, 0xf6, 0x3c, 0x00, 0x00, 0x00, 0x00,
         0x00, 0x00, 0x36, 0x00, 0x00, 0x00, 0x28, 0x00,
         0x00, 0x00, 0x48, 0x00, 0x00, 0x00, 0x48, 0x00,
@@ -83,7 +85,7 @@ class StreamDeckMini(StreamDeck):
 
     def set_key_image(self, key, image):
         if min(max(key, 0), self.KEY_COUNT) != key:
-            raise IndexError("Invalid key index {}.".format(key))
+            raise IndexError(f"Invalid key index {key}.")
 
         image = bytes(image or self.BLANK_KEY_IMAGE)
 

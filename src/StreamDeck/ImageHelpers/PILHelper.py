@@ -6,6 +6,7 @@
 #
 
 import io
+
 from PIL import Image
 
 from ..Devices.StreamDeck import StreamDeck
@@ -40,7 +41,7 @@ def _to_native_format(image, image_format):
         image.thumbnail(image_format['size'])
 
     if image_format['rotation']:
-        image = image.rotate(image_format['rotation'])
+        image = image.rotate(image_format['rotation'], expand=True)
 
     if image_format['flip'][0]:
         image = image.transpose(Image.FLIP_LEFT_RIGHT)
