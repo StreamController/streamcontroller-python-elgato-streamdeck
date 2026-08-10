@@ -423,8 +423,18 @@ class LibUSBHIDAPI(Transport):
                 return self.device_handle is not None
 
         def connected(self):
+            # The enumeration is filtered by this device's own vid/pid on
+            # purpose. The hidapi libusb backend answers an *unfiltered*
+            # enumeration by opening every HID device on the system and
+            # reading its string descriptors. Devices with sloppy firmware
+            # don't survive that: they stop answering, the kernel resets the
+            # port and they re-enumerate, over and over, for as long as
+            # something polls connected() (StreamController issue #396).
             with self.mutex:
-                return any(d['path'] == self.device_info['path'] for d in self.hidapi.enumerate())
+                devices = self.hidapi.enumerate(vendor_id=self.device_info['vendor_id'],
+                                                product_id=self.device_info['product_id'])
+
+            return any(d['path'] == self.device_info['path'] for d in devices)
 
         def vendor_id(self):
             return self.device_info['vendor_id']
