@@ -56,10 +56,46 @@ StreamDeck Plus
    :show-inheritance:
 
 
+===================
+StreamDeck Plus XL
+===================
+
+.. automodule:: StreamDeck.Devices.StreamDeckPlusXL
+   :members:
+   :show-inheritance:
+
+
+=================
+StreamDeck Studio
+=================
+
+.. automodule:: StreamDeck.Devices.StreamDeckStudio
+   :members:
+   :show-inheritance:
+
+
 =============
 StreamDeck XL
 =============
 
 .. automodule:: StreamDeck.Devices.StreamDeckXL
+   :members:
+   :show-inheritance:
+
+
+=========================
+Mirabox Stream Dock 293S
+=========================
+
+.. automodule:: StreamDeck.Devices.Mirabox293S
+   :members:
+   :show-inheritance:
+
+
+============
+Rotated Deck
+============
+
+.. automodule:: StreamDeck.Devices.RotatedDeck
    :members:
    :show-inheritance:
