@@ -279,7 +279,7 @@ class StreamDeck(ABC):
                 self.close()
 
                 if not self.reconnect_after_suspend:
-                    # We are being closed on purpose, see close()
+                    # Someone cleared the flag to close this deck on purpose
                     logger.info("Read thread of deck %s stopped while the deck was being closed: %s", self.id(), error)
                     return
 
