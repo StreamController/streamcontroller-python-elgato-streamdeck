@@ -24,6 +24,9 @@ jobs:
       - name: Install Build Tool
         run: python -m pip install --upgrade pip build
 
+      - name: Set Version from Release Tag
+        run: printf '%s' "${GITHUB_REF_NAME#v}" > VERSION
+
       - name: Build Wheel and Tarball
         run: python -m build
 
