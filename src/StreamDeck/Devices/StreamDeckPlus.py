@@ -5,7 +5,9 @@
 #         www.fourwalledcubicle.com
 #
 
-from .StreamDeck import StreamDeck, ControlType, DialEventType, TouchscreenEventType
+from typing import Callable, ClassVar
+
+from .StreamDeck import ControlType, DialEventType, StreamDeck, TouchscreenEventType
 
 
 def _dials_rotation_transform(value):
@@ -48,13 +50,13 @@ class StreamDeckPlus(StreamDeck):
     _KEY_PACKET_PAYLOAD_LEN = _IMG_PACKET_LEN - _KEY_PACKET_HEADER
     _LCD_PACKET_PAYLOAD_LEN = _IMG_PACKET_LEN - _LCD_PACKET_HEADER
 
-    _DIAL_EVENT_TRANSFORM = {
+    _DIAL_EVENT_TRANSFORM: ClassVar[dict[DialEventType, Callable[[int], int]]] = {
         DialEventType.TURN: _dials_rotation_transform,
         DialEventType.PUSH: bool,
     }
 
     # 120 x 120 black JPEG
-    BLANK_KEY_IMAGE = [
+    BLANK_KEY_IMAGE: ClassVar[list[int]] = [
         0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00,
         0x01, 0x01, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00, 0xff, 0xdb,
         0x00, 0x43, 0x00, 0x08, 0x06, 0x06, 0x07, 0x06, 0x05, 0x08, 0x07,
@@ -139,7 +141,7 @@ class StreamDeckPlus(StreamDeck):
     ]
 
     # 120 x 800 black JPEG
-    BLANK_TOUCHSCREEN_IMAGE = [
+    BLANK_TOUCHSCREEN_IMAGE: ClassVar[list[int]] = [
         0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00,
         0x01, 0x01, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00, 0xff, 0xdb,
         0x00, 0x43, 0x00, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
@@ -410,7 +412,7 @@ class StreamDeckPlus(StreamDeck):
 
     def set_key_image(self, key, image):
         if min(max(key, 0), self.KEY_COUNT) != key:
-            raise IndexError("Invalid key index {}.".format(key))
+            raise IndexError(f"Invalid key index {key}.")
 
         image = bytes(image or self.BLANK_KEY_IMAGE)
 
@@ -446,16 +448,16 @@ class StreamDeckPlus(StreamDeck):
             height = self.TOUCHSCREEN_PIXEL_HEIGHT
 
         if min(max(x_pos, 0), self.TOUCHSCREEN_PIXEL_WIDTH) != x_pos:
-            raise IndexError("Invalid x position {}.".format(x_pos))
+            raise IndexError(f"Invalid x position {x_pos}.")
 
         if min(max(y_pos, 0), self.TOUCHSCREEN_PIXEL_HEIGHT) != y_pos:
-            raise IndexError("Invalid y position {}.".format(y_pos))
+            raise IndexError(f"Invalid y position {y_pos}.")
 
         if min(max(width, 1), self.TOUCHSCREEN_PIXEL_WIDTH - x_pos) != width:
-            raise IndexError("Invalid draw width {}.".format(width))
+            raise IndexError(f"Invalid draw width {width}.")
 
         if min(max(height, 1), self.TOUCHSCREEN_PIXEL_HEIGHT - y_pos) != height:
-            raise IndexError("Invalid draw height {}.".format(height))
+            raise IndexError(f"Invalid draw height {height}.")
 
         image = bytes(image)
 

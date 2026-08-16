@@ -16,9 +16,10 @@ import itertools
 import os
 import threading
 import time
-
 from fractions import Fraction
+
 from PIL import Image, ImageSequence
+
 from StreamDeck.DeviceManager import DeviceManager
 from StreamDeck.ImageHelpers import PILHelper
 from StreamDeck.Transport.Transport import TransportError
@@ -28,6 +29,7 @@ ASSETS_PATH = os.path.join(os.path.dirname(__file__), "Assets")
 
 # Animation frames per second to attempt to display on the StreamDeck devices.
 FRAMES_PER_SECOND = 30
+closed_event = threading.Event()
 
 
 # Loads in a source image, extracts out the individual animation frames (if
@@ -60,18 +62,20 @@ def create_animation_frames(deck, image_filename):
 def key_change_callback(deck, key, state):
     # Use a scoped-with on the deck to ensure we're the only thread using it
     # right now.
-    with deck:
-        # Reset deck, clearing all button images.
-        deck.reset()
+    if state:
+        closed_event.set()
+        with deck:
+            # Reset deck, clearing all button images.
+            deck.reset()
 
-        # Close deck handle, terminating internal worker threads.
-        deck.close()
+            # Close deck handle, terminating internal worker threads.
+            deck.close()
 
 
 if __name__ == "__main__":
     streamdecks = DeviceManager().enumerate()
 
-    print("Found {} Stream Deck(s).\n".format(len(streamdecks)))
+    print(f"Found {len(streamdecks)} Stream Deck(s).\n")
 
     for index, deck in enumerate(streamdecks):
         # This example only works with devices that have screens.
@@ -81,7 +85,7 @@ if __name__ == "__main__":
         deck.open()
         deck.reset()
 
-        print("Opened '{}' device (serial number: '{}')".format(deck.deck_type(), deck.get_serial_number()))
+        print(f"Opened '{deck.deck_type()}' device (serial number: '{deck.get_serial_number()}')")
 
         # Set initial screen brightness to 30%.
         deck.set_brightness(30)
@@ -106,7 +110,7 @@ if __name__ == "__main__":
 
         # Helper function that will run a periodic loop which updates the
         # images on each key.
-        def animate(fps):
+        def animate(deck, key_images, fps):
             # Convert frames per second to frame time in seconds.
             #
             # Frame time often cannot be fully expressed by a float type,
@@ -124,7 +128,7 @@ if __name__ == "__main__":
 
             # Periodic loop that will render every frame at the set FPS until
             # the StreamDeck device we're using is closed.
-            while deck.is_open():
+            while not closed_event.is_set() and deck.is_open():
                 try:
                     # Use a scoped-with on the deck to ensure we're the only
                     # thread using it right now.
@@ -133,7 +137,7 @@ if __name__ == "__main__":
                         for key, frames in key_images.items():
                             deck.set_key_image(key, next(frames))
                 except TransportError as err:
-                    print("TransportError: {0}".format(err))
+                    print(f"TransportError: {err}")
                     # Something went wrong while communicating with the device
                     # (closed?) - don't re-schedule the next animation frame.
                     break
@@ -158,7 +162,7 @@ if __name__ == "__main__":
                     time.sleep(sleep_interval)
 
         # Kick off the key image animating thread.
-        threading.Thread(target=animate, args=[FRAMES_PER_SECOND]).start()
+        threading.Thread(target=animate, args=[deck, key_images, FRAMES_PER_SECOND]).start()
 
         # Register callback function for when a key state changes.
         deck.set_key_callback(key_change_callback)
