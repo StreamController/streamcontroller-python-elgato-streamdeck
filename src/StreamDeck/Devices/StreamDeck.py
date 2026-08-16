@@ -5,14 +5,25 @@
 #         www.fourwalledcubicle.com
 #
 
+import logging
 import threading
 import time
 from abc import ABC, abstractmethod
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable, Iterable
 from enum import Enum
-from typing import Any, Iterable, TypeVar
+from typing import Any, TypeVar
 
 from ..Transport.Transport import Transport, TransportError
+
+logger = logging.getLogger(__name__)
+
+# How long we keep trying to open a deck again after a transport error.
+RECONNECT_TIMEOUT = 10
+# A deck that is plugged in but broken would make us reopen it in a tight loop,
+# so we only reconnect a few times in a row before giving up.
+MAX_RECONNECTS_IN_ROW = 5
+# Reading fine for this long means the next error is a new one, not a retry.
+RECONNECT_RESET_TIME = 30
 
 
 class TouchscreenEventType(Enum):
@@ -82,8 +93,11 @@ class StreamDeck(ABC):
 
     _Self = TypeVar('_Self', bound='StreamDeck')
     KeyCallback = Callable[[_Self, int, bool], None] | None
+    AsyncKeyCallback = Callable[[_Self, int, bool], Awaitable[None]] | None
     DialCallback = Callable[[_Self, int, DialEventType, bool], None] | None
+    AsyncDialCallback = Callable[[_Self, int, DialEventType, bool], Awaitable[None]] | None
     TouchScreenCallback = Callable[[_Self, TouchscreenEventType, Any], None] | None
+    AsyncTouchScreenCallback = Callable[[_Self, TouchscreenEventType, Any], Awaitable[None]] | None
 
     def __init__(self, device: Transport.Device):
         self.device: Transport.Device = device
@@ -98,7 +112,15 @@ class StreamDeck(ABC):
         self.touchscreen_callback: StreamDeck.TouchScreenCallback = None
 
         self.update_lock: threading.RLock = threading.RLock()
-        self.reconnect_after_suspend = True
+
+        # Set by open(). Clear it before closing a deck on purpose, otherwise
+        # the read thread reads the closed handle, lands in its TransportError
+        # handler and reopens the device as if we had just resumed from
+        # suspend. Note that close() must not clear it itself - the read thread
+        # calls close() before consulting the flag.
+        self.reconnect_after_suspend: bool = True
+        self.n_reconnects_in_row: int = 0
+        self.last_reconnect_time: float = 0.0
 
     def __del__(self):
         """
@@ -209,11 +231,19 @@ class StreamDeck(ABC):
                 self.run_read_thread = False
                 self.close()
 
-    def _read_with_resume_from_suspend(self):
+    def _read_with_resume_from_suspend(self) -> None:
         """
         Read handler for the underlying transport, listening for button state
         changes on the underlying device, caching the new states and firing off
         any registered callbacks.
+
+        Unlike :meth:`_read` this one reopens the deck after *any* transport
+        error, not only after a resume from suspend. A transient USB hiccup
+        used to kill the read thread for good, leaving a deck that looks
+        perfectly connected but ignores every key press.
+
+        .. seealso:: Selected by ``open(resume_from_suspend=True)``, which is
+                     the default.
         """
         while self.run_read_thread:
             try:
@@ -231,7 +261,7 @@ class StreamDeck(ABC):
                 elif ControlType.DIAL in control_states and self.dial_callback is not None:
                     if DialEventType.PUSH in control_states[ControlType.DIAL]:
                         for k, (old, new) in enumerate(zip(self.last_dial_states,
-                                                            control_states[ControlType.DIAL][DialEventType.PUSH])):
+                                                           control_states[ControlType.DIAL][DialEventType.PUSH])):
                             if old != new:
                                 self.last_dial_states[k] = new
                                 self.dial_callback(self, k, DialEventType.PUSH, new)
@@ -244,29 +274,73 @@ class StreamDeck(ABC):
                 elif ControlType.TOUCHSCREEN in control_states and self.touchscreen_callback is not None:
                     self.touchscreen_callback(self, *control_states[ControlType.TOUCHSCREEN])
 
-            except TransportError:
+            except TransportError as error:
                 self.run_read_thread = False
                 self.close()
 
-                if self.reconnect_after_suspend:
-                    if self.connected() and not self.is_open():
-                        # This is the case when resuming from suspend
-                        TIMEOUT = 10
-                        start_time = time.time()
-                        while True:
-                            try:
-                                self.open()
-                                break
-                            except TransportError:
-                                time.sleep(0.1)
+                if not self.reconnect_after_suspend:
+                    # Someone cleared the flag to close this deck on purpose
+                    logger.info("Read thread of deck %s stopped while the deck was being closed: %s", self.id(), error)
+                    return
 
-                            if not self.connected():
-                                break
+                logger.warning("Read thread of deck %s hit a transport error, trying to reconnect: %s", self.id(), error)
+                self._reconnect()
+                # A successful open() starts a new read thread, so this one is
+                # done either way - continuing here would give us two readers
+                # on one deck.
+                return
 
-                            if time.time() - start_time > TIMEOUT:
-                                break
+    def _reconnect(self) -> bool:
+        """
+        Opens the deck again after a transport error, as happens both on a
+        resume from suspend and after a transient USB hiccup.
 
-    def _setup_reader(self, callback):
+        :rtype: bool
+        :return: `True` if the deck was reopened, `False` otherwise.
+        """
+        if not self._allow_reconnect():
+            logger.error("Deck %s failed %d times in a row, not reconnecting again", self.id(), MAX_RECONNECTS_IN_ROW)
+            return False
+
+        start_time = time.time()
+        while True:
+            try:
+                self.open()
+                logger.info("Reconnected deck %s after a transport error, reading again", self.id())
+                return True
+            except TransportError:
+                # Without the close the stale handle would make every open() a no-op
+                self.close()
+                time.sleep(0.1)
+
+            if not self.connected():
+                logger.error("Deck %s is no longer connected, giving up on reconnecting it", self.id())
+                return False
+
+            if time.time() - start_time > RECONNECT_TIMEOUT:
+                logger.error("Timed out reconnecting deck %s after a transport error", self.id())
+                return False
+
+    def _allow_reconnect(self) -> bool:
+        """
+        Rate limits :meth:`_reconnect`. A deck that is plugged in but broken
+        would otherwise make us reopen it in a tight loop, so we only reconnect
+        a few times in a row. Reading fine for a while means the next error is
+        a new one rather than a retry, and resets the count.
+
+        :rtype: bool
+        :return: `True` if another reconnect attempt is allowed.
+        """
+        now = time.time()
+        if now - self.last_reconnect_time > RECONNECT_RESET_TIME:
+            self.n_reconnects_in_row = 0
+
+        self.n_reconnects_in_row += 1
+        self.last_reconnect_time = now
+
+        return self.n_reconnects_in_row <= MAX_RECONNECTS_IN_ROW
+
+    def _setup_reader(self, callback: Callable) -> None:
         """
         Sets up the internal transport reader thread with the given callback,
         for asynchronous processing of HID events from the device. If the thread
@@ -516,7 +590,7 @@ class StreamDeck(ABC):
         """
         self.key_callback = callback
 
-    def set_key_callback_async(self, async_callback: KeyCallback, loop=None):
+    def set_key_callback_async(self, async_callback: AsyncKeyCallback, loop=None):
         """
         Sets the asynchronous callback function called each time a button on the
         StreamDeck changes state (either pressed, or released). The given
@@ -537,7 +611,12 @@ class StreamDeck(ABC):
         loop = loop or asyncio.get_event_loop()
 
         def callback(*args):
-            asyncio.run_coroutine_threadsafe(async_callback(*args), loop)
+            def done(fut):
+                # Get the async result, this will re-raise any exceptions.
+                fut.result()
+
+            result = asyncio.run_coroutine_threadsafe(async_callback(*args), loop)
+            result.add_done_callback(done)
 
         self.set_key_callback(callback)
 
@@ -560,7 +639,7 @@ class StreamDeck(ABC):
         """
         self.dial_callback = callback
 
-    def set_dial_callback_async(self, async_callback: DialCallback, loop=None) -> None:
+    def set_dial_callback_async(self, async_callback: AsyncDialCallback, loop=None) -> None:
         """
         Sets the asynchronous callback function called each time there is an
         interaction with a dial on the StreamDeck. The given callback should
@@ -581,7 +660,12 @@ class StreamDeck(ABC):
         loop = loop or asyncio.get_event_loop()
 
         def callback(*args):
-            asyncio.run_coroutine_threadsafe(async_callback(*args), loop)
+            def done(fut):
+                # Get the async result, this will re-raise any exceptions.
+                fut.result()
+
+            result = asyncio.run_coroutine_threadsafe(async_callback(*args), loop)
+            result.add_done_callback(done)
 
         self.set_dial_callback(callback)
 
@@ -604,7 +688,7 @@ class StreamDeck(ABC):
         """
         self.touchscreen_callback = callback
 
-    def set_touchscreen_callback_async(self, async_callback: TouchScreenCallback, loop=None) -> None:
+    def set_touchscreen_callback_async(self, async_callback: AsyncTouchScreenCallback, loop=None) -> None:
         """
         Sets the asynchronous callback function called each time there is an
         interaction with the touchscreen on the StreamDeck. The given callback
@@ -625,7 +709,12 @@ class StreamDeck(ABC):
         loop = loop or asyncio.get_event_loop()
 
         def callback(*args):
-            asyncio.run_coroutine_threadsafe(async_callback(*args), loop)
+            def done(fut):
+                # Get the async result, this will re-raise any exceptions.
+                fut.result()
+
+            result = asyncio.run_coroutine_threadsafe(async_callback(*args), loop)
+            result.add_done_callback(done)
 
         self.set_touchscreen_callback(callback)
 

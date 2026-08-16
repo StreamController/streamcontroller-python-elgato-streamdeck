@@ -10,6 +10,8 @@ import logging
 
 from .Transport import Transport, TransportError
 
+logger = logging.getLogger(__name__)
+
 
 class Dummy(Transport):
     """
@@ -20,21 +22,21 @@ class Dummy(Transport):
         def __init__(self, vid, pid):
             self.vid = vid
             self.pid = pid
-            self.id = "{}:{}".format(vid, pid)
+            self.id = f"{vid}:{pid}"
             self.is_open = False
 
         def open(self):
             if self.is_open:
                 return
 
-            logging.info("Deck opened")
+            logger.info("Deck opened")
             self.is_open = True
 
         def close(self):
             if not self.is_open:
                 return
 
-            logging.info("Deck closed")
+            logger.info("Deck closed")
             self.is_open = False
 
         def is_open(self):
@@ -56,29 +58,35 @@ class Dummy(Transport):
             if not self.is_open:
                 raise TransportError("Deck feature write while deck not open.")
 
-            logging.info("Deck feature write (length %s):\n%s", len(payload), binascii.hexlify(payload, ' ').decode('utf-8'))
+            logger.info("Deck feature write (length %s):\n%s", len(payload), binascii.hexlify(payload, ' ').decode('utf-8'))
             return True
 
         def read_feature(self, report_id, length):
             if not self.is_open:
                 raise TransportError("Deck feature read while deck not open.")
 
-            logging.info("Deck feature read (length %s)", length)
+            logger.info("Deck feature read (length %s)", length)
+            return bytearray(length)
+
+        def read_input(self, report_id, length):
+            if not self.is_open:
+                raise TransportError("Deck input read while deck not open.")
+
+            logger.info("Deck input read (length %s)", length)
             return bytearray(length)
 
         def write(self, payload):
             if not self.is_open:
                 raise TransportError("Deck write while deck not open.")
 
-            logging.info("Deck report write (length %s):\n%s", len(payload), binascii.hexlify(payload, ' ').decode('utf-8'))
+            logger.info("Deck report write (length %s):\n%s", len(payload), binascii.hexlify(payload, ' ').decode('utf-8'))
             return True
 
         def read(self, length):
             if not self.is_open:
                 raise TransportError("Deck read while deck not open.")
 
-            logging.info("Deck report read (length %s)", length)
-            return bytearray(length)
+            logger.info("Deck report read (length %s)", length)
 
     @staticmethod
     def probe():

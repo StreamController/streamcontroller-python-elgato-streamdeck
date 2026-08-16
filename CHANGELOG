@@ -1,5 +1,32 @@
+Fork version 0.2.0:
+	- Merged upstream up to the 0.10.0 changes listed below.
+	- Added RotatedDeck, a wrapper presenting a deck as if it had been turned by
+	  a multiple of 90 degrees. Moved here from StreamController, where it was
+	  called BetterDeck.
+	- Fixed RotatedDeck's three async callback setters recursing into themselves,
+	  and its dial variant not remapping the dial index.
+	- LibUSBHIDAPI.Device.connected() now filters the enumeration by the device's
+	  own vid/pid. An unfiltered enumeration makes the libusb backend open every
+	  HID device on the system, which resets devices with sloppy firmware over
+	  and over (StreamController issue #396).
+	- _read_with_resume_from_suspend() now reopens the deck after any transport
+	  error, not only on a resume from suspend, with a timeout and a cap on
+	  consecutive attempts. A transient USB hiccup used to kill the read thread
+	  for good, leaving a deck that looked connected but ignored every key press.
+	- Fixed Transport.Device.read_input being declared twice, and Dummy.Device
+	  never implementing it - which made the whole dummy transport uninstantiable.
+
+Version 0.10.0:
+	- Fix Dummy Streamdeck backend when calling `read_feature()`.
+	- Add support for the StreamDeck Studio.
+	- Minimum Python version bumped to 3.10, as 3.9 is now EOL.
+	- Fix error in animated deck example, wheh the example is closed.
+	- Added support for the StreamDeck Mini (Discord edition).
+	- Added support for the StreamDeck Plus XL.
+	- Fixed missing retrieval of installed asyncio callbacks, which were causing exceptions raised in the callback to be silently discarded.
+
 Version 0.9.8:
-	- Documentation fixes (StreamDeck 6 key module is also supported since 0.9.7)
+	- Documentation fixes (StreamDeck 6 key module is also supported since 0.9.7).
 
 Version 0.9.7:
 	- Added type hints to public APIs.

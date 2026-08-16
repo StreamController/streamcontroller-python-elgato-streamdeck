@@ -11,17 +11,19 @@
 # tiles generated at runtime, and responding to button state change events.
 
 import os
-import random
 import threading
 
 from PIL import Image, ImageDraw, ImageFont
 
 from StreamDeck.DeviceManager import DeviceManager
+from StreamDeck.Devices.StreamDeck import DialEventType
 from StreamDeck.ImageHelpers import PILHelper
 from StreamDeck.Transport.Transport import TransportError
 
 # Folder location of image assets used by this example.
 ASSETS_PATH = os.path.join(os.path.dirname(__file__), "Assets")
+
+dial_value = 0
 
 
 # Generates a custom tile with run-time generated text and custom image via the
@@ -31,7 +33,7 @@ def render_key_image(deck, icon_filename, font_filename, label_text):
     # leaving a margin at the bottom so that we can draw the key title
     # afterwards.
     icon = Image.open(icon_filename)
-    image = PILHelper.create_scaled_key_image(deck, icon, margins=[0, 0, 20, 0])
+    image = PILHelper.create_scaled_key_image(deck, icon, margins=(0, 0, 0, 0))
 
     # Load a custom TrueType font and use it to overlay the key index, draw key
     # label onto the image a few pixels from the bottom of the key.
@@ -40,17 +42,6 @@ def render_key_image(deck, icon_filename, font_filename, label_text):
     draw.text((image.width / 2, image.height - 5), text=label_text, font=font, anchor="ms", fill="white")
 
     return PILHelper.to_native_key_format(deck, image)
-
-
-# Generate an image for the screen
-def render_screen_image(deck, font_filename, text):
-    image = PILHelper.create_screen_image(deck)
-    # Load a custom TrueType font and use it to create an image
-    draw = ImageDraw.Draw(image)
-    font = ImageFont.truetype(font_filename, 20)
-    draw.text((image.width / 2, image.height - 25), text=text, font=font, anchor="ms", fill="white")
-
-    return PILHelper.to_native_screen_format(deck, image)
 
 
 # Returns styling information for a key based on its position and state.
@@ -93,19 +84,23 @@ def update_key_image(deck, key, state):
         deck.set_key_image(key, image)
 
 
-# Prints key state change information, updates the key image and performs any
+# Prints key state change information, updates rhe key image and performs any
 # associated actions when a key is pressed.
 def key_change_callback(deck, key, state):
     # Print new key state
     print(f"Deck {deck.id()} Key {key} = {state}", flush=True)
+    rgb = (255 * (key % 3 == 0), 255 * (key % 3 == 1), 255 * (key % 3 == 2))
+    deck.set_encoder_knob_color(key, rgb)
+    deck.set_encoder_ring_percentage(0, rgb, key * 100 / 31, 24)
+    deck.set_encoder_ring_percentage(1, rgb, key * 100 / 31, 24)
 
-    # Don't try to set an image for touch buttons but set a random color
+    # Don't try to draw an image on a touch button
     if key >= deck.key_count():
-        set_random_touch_color(deck, key)
         return
 
     # Update the key image based on the new key state.
     update_key_image(deck, key, state)
+    # deck.set_key_image(key, None)
 
     # Check if the key is changing to the pressed state.
     if state:
@@ -123,13 +118,18 @@ def key_change_callback(deck, key, state):
                 deck.close()
 
 
-# Set a random color for the specified key
-def set_random_touch_color(deck, key):
-    r = random.randint(0, 255)
-    g = random.randint(0, 255)
-    b = random.randint(0, 255)
-
-    deck.set_key_color(key, r, g, b)
+def dial_change_callback(deck, dial, event, value):
+    global dial_value
+    if event == DialEventType.PUSH:
+        print(f"dial pushed: {dial} state: {value}")
+    elif event == DialEventType.TURN:
+        print(f"dial {dial} turned: {value}")
+        dial_value += value
+        if dial_value < 0:
+            dial_value = 0
+        elif dial_value > 100:
+            dial_value = 100
+        deck.set_encoder_ring_value(dial, (0, 255, 0), dial_value, 24)
 
 
 if __name__ == "__main__":
@@ -152,14 +152,12 @@ if __name__ == "__main__":
 
         # Set initial key images.
         for key in range(deck.key_count()):
+            # deck.set_key_image(key, None)
             update_key_image(deck, key, False)
 
         # Register callback function for when a key state changes.
         deck.set_key_callback(key_change_callback)
-
-        # Set a screen image
-        image = render_screen_image(deck, os.path.join(ASSETS_PATH, "Roboto-Regular.ttf"), "Python StreamDeck")
-        deck.set_screen_image(image)
+        deck.set_dial_callback(dial_change_callback)
 
         # Wait until all application threads have terminated (for this example,
         # this is when all deck handles are closed).
