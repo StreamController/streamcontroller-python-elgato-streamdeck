@@ -201,7 +201,8 @@ class LibUSBHIDAPI(Transport):
                             'path': current_device.contents.path.decode('utf-8'),
                             'vendor_id': current_device.contents.vendor_id,
                             'product_id': current_device.contents.product_id,
-                            'serial_number': current_device.contents.serial_number
+                            'serial_number': current_device.contents.serial_number,
+                            'interface_number': current_device.contents.interface_number
                         })
 
                         current_device = current_device.contents.next
@@ -447,6 +448,9 @@ class LibUSBHIDAPI(Transport):
 
         def path(self):
             return self.device_info['path']
+
+        def interface_number(self):
+            return self.device_info['interface_number']
 
         def write_feature(self, payload):
             with self.mutex:

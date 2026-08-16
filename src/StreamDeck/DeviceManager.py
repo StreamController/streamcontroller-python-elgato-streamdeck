@@ -18,6 +18,7 @@ from .Devices.StreamDeckPlus import StreamDeckPlus
 from .Devices.StreamDeckPlusXL import StreamDeckPlusXL
 from .Devices.StreamDeckStudio import StreamDeckStudio
 from .Devices.StreamDeckXL import StreamDeckXL
+from .Devices.UlanziD200 import UlanziD200
 from .ProductIDs import USBProductIDs, USBVendorIDs
 from .Transport import Transport
 from .Transport.Dummy import Dummy
@@ -26,8 +27,8 @@ from .Transport.LibUSBHIDAPI import LibUSBHIDAPI
 
 # Module-level registry of additional controller factories. These are intended
 # for non-USB / virtual controllers (e.g. the TouchyDeck shim) that cannot be
-# discovered via the standard USB transport. The built-in Elgato and Mirabox
-# devices are always enumerated regardless of this registry.
+# discovered via the standard USB transport. The built-in Elgato, Mirabox, and
+# Ulanzi devices are always enumerated regardless of this registry.
 _controller_factories: list[Callable[[], "list[StreamDeck]"]] = []
 
 
@@ -39,8 +40,8 @@ def register_controllers_factory(factory: Callable[[], "list[StreamDeck]"]) -> N
     A factory is a zero-argument callable that returns a list of
     :class:`StreamDeck` (or subclass) instances. Factories are intended for
     non-USB / virtual controllers that can't be discovered via the standard
-    USB transport; the built-in Elgato and Mirabox devices are always
-    enumerated regardless.
+    USB transport; the built-in Elgato, Mirabox, and Ulanzi devices are
+    always enumerated regardless.
 
     Registration is global and cumulative. It is typically called once at
     application startup, before any :class:`DeviceManager` is instantiated.
@@ -121,8 +122,16 @@ class DeviceManager:
     def _default_factory(self) -> list[StreamDeck]:
         """
         Discover the built-in, USB-attached StreamDeck controllers via this
-        manager's transport. Returns the Elgato and Mirabox devices that the
-        library knows about natively.
+        manager's transport. Returns the Elgato, Mirabox, and Ulanzi devices
+        that the library knows about natively.
+
+        Each entry in ``products`` is ``(vid, pid, class_type)``, optionally
+        followed by a USB interface number. The interface number is only
+        needed for composite devices that expose more than one HID
+        interface under the same VID/PID where only one of them speaks the
+        deck protocol - e.g. the Ulanzi D200, whose second interface is an
+        unrelated keyboard-emulation HID device that must not be wrapped as
+        a StreamDeck.
 
         :rtype: list(StreamDeck)
         :return: list of :class:`StreamDeck` instances, one for each detected
@@ -149,12 +158,22 @@ class DeviceManager:
             (USBVendorIDs.USB_VID_ELGATO, USBProductIDs.USB_PID_STREAMDECK_PLUS, StreamDeckPlus),
             (USBVendorIDs.USB_VID_ELGATO, USBProductIDs.USB_PID_STREAMDECK_PLUS_XL, StreamDeckPlusXL),
             (USBVendorIDs.USB_VID_MIRABOX, USBProductIDs.USB_PID_MIRABOX_STREAMDOCK_293S, Mirabox293S),
+            (USBVendorIDs.USB_VID_ULANZI, USBProductIDs.USB_PID_ULANZI_D200, UlanziD200, 0),
         ]
 
         streamdecks = list()
 
-        for vid, pid, class_type in products:
+        for entry in products:
+            vid, pid, class_type = entry[0], entry[1], entry[2]
+            interface_number = entry[3] if len(entry) > 3 else None
+
             found_devices = self.transport.enumerate(vid=vid, pid=pid)
+            if interface_number is not None:
+                found_devices = [
+                    d for d in found_devices
+                    if getattr(d, "interface_number", lambda: interface_number)() == interface_number
+                ]
+
             streamdecks.extend([class_type(d) for d in found_devices])
 
         return streamdecks
