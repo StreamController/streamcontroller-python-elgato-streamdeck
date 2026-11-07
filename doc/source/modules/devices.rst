@@ -93,7 +93,7 @@ Mirabox Stream Dock 293S
 
 
 =========================
-Soomfon Stream Controller 
+Soomfon Stream Controller
 =========================
 
 .. automodule:: StreamDeck.Devices.SoomfonStreamController

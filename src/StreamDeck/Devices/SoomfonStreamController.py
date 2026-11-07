@@ -67,7 +67,7 @@ class SoomfonStreamController(Mirabox293S):
 
     def _read_control_states(self):
         data = self.device.read(self.INPUT_REPORT_LENGTH)
-        if not data or bytes(data[:3]) != b"ACK":
+        if not data or len(data) < 11 or bytes(data[:3]) != b"ACK":
             return None
 
         key_id, state = data[9], data[10]
