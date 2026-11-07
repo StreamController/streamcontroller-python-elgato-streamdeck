@@ -92,6 +92,15 @@ Mirabox Stream Dock 293S
    :show-inheritance:
 
 
+=========================
+Soomfon Stream Controller 
+=========================
+
+.. automodule:: StreamDeck.Devices.SoomfonStreamController
+   :members:
+   :show-inheritance:
+
+
 ============
 Rotated Deck
 ============
