@@ -41,6 +41,7 @@ Index
     examples/plus.rst
     examples/neo.rst
     examples/studio.rst
+    examples/soomfon.rst
     examples/tiled.rst
     examples/animated.rst
 
