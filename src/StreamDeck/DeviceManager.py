@@ -19,6 +19,7 @@ from .Devices.StreamDeckPlusXL import StreamDeckPlusXL
 from .Devices.StreamDeckStudio import StreamDeckStudio
 from .Devices.StreamDeckXL import StreamDeckXL
 from .Devices.UlanziD200 import UlanziD200
+from .Devices.SoomfonStreamController import SoomfonStreamController
 from .ProductIDs import USBProductIDs, USBVendorIDs
 from .Transport import Transport
 from .Transport.Dummy import Dummy
@@ -159,6 +160,7 @@ class DeviceManager:
             (USBVendorIDs.USB_VID_ELGATO, USBProductIDs.USB_PID_STREAMDECK_PLUS_XL, StreamDeckPlusXL),
             (USBVendorIDs.USB_VID_MIRABOX, USBProductIDs.USB_PID_MIRABOX_STREAMDOCK_293S, Mirabox293S),
             (USBVendorIDs.USB_VID_ULANZI, USBProductIDs.USB_PID_ULANZI_D200, UlanziD200, 0),
+            (USBVendorIDs.USB_VID_SOOMFON, USBProductIDs.USB_PID_SOOMFON_STREAM_CONTROLLER, SoomfonStreamController, 0),
         ]
 
         streamdecks = list()

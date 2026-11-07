@@ -37,6 +37,7 @@ variants:
 This fork additionally supports:
 
 * Mirabox Stream Dock 293S
+* Soomfon Stream Controller (XF-CN001)
 
 ## Package Installation:
 
